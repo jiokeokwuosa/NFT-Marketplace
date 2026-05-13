@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { useReadContract } from "wagmi"
 import { cakeAbi } from "../constants"
 import formatPrice from "../utils/formatPrice"
@@ -9,9 +10,11 @@ interface NFTBoxProps {
     tokenId: string
     contractAddress: string
     price: string
+    /** When set, the whole card links to this URL (e.g. buy page). */
+    href?: string
 }
 
-export default function NFTBox({ tokenId, contractAddress, price }: NFTBoxProps) {
+export default function NFTBox({ tokenId, contractAddress, price, href }: NFTBoxProps) {
     const [nftImageUrl, setNftImageUrl] = useState<string | null>(null)
     const [isLoadingImage, setIsLoadingImage] = useState(false)
     const [imageError, setImageError] = useState(false)
@@ -59,8 +62,11 @@ export default function NFTBox({ tokenId, contractAddress, price }: NFTBoxProps)
         }
     }, [tokenURIData, isTokenURILoading, tokenId, contractAddress])
 
-    return (
-        <div className="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+    const cardClassName =
+        "border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+
+    const card = (
+        <>
             <div className="aspect-square relative bg-gray-100">
                 {isLoadingImage || isTokenURILoading ? (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -96,6 +102,20 @@ export default function NFTBox({ tokenId, contractAddress, price }: NFTBoxProps)
                     Contract: {contractAddress}
                 </p>
             </div>
-        </div>
+        </>
     )
+
+    if (href) {
+        return (
+            <Link
+                href={href}
+                className={`${cardClassName} block text-inherit no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-lg`}
+                aria-label={`Buy NFT #${tokenId}`}
+            >
+                {card}
+            </Link>
+        )
+    }
+
+    return <div className={cardClassName}>{card}</div>
 }
